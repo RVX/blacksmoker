@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 """
 use obspy to convert mseed to wav, then ffmpeg to conver wav to flac
 """

@@ -1,3 +1,6 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
 import os
 from pydub import AudioSegment
 from datetime import datetime
@@ -5,21 +8,41 @@ from tqdm import tqdm  # For progress bar
 from colorama import Fore, Style, init  # For colored terminal output
 from collections import defaultdict
 import shutil  # For checking disk space
-
-# Configuration: Set to True to delete original files after merging
-delete_original_files = True  # Set to True to enable deletion
+import argparse
 
 # Initialize colorama
 init(autoreset=True)
 
-# Base directory containing the temporary folders
-base_dir = r"C:\Users\ubema\OneDrive\Documents\0_ART_COMMISIONS\Julian_Charriere\2025_BLACK_SMOKER\BLACK_SMOKER_SCRIPTS\hydrodownwav\hydrophone_downloader\hydrodownwav_sonifications"
+# --- Argument parsing for portability ---
+parser = argparse.ArgumentParser(description="Merge station WAV/FLAC files into batches.")
+parser.add_argument(
+    "--base-dir",
+    type=str,
+    default=os.path.join(os.path.dirname(__file__), "..", "..", "sonifications"),
+    help="Base directory containing the temporary folders (default: ./sonifications/)"
+)
+parser.add_argument(
+    "--output-dir",
+    type=str,
+    default=None,
+    help="Output directory for merged files (default: <base-dir>/merged/)"
+)
+parser.add_argument(
+    "--delete-original",
+    action="store_true",
+    help="Delete original files after merging"
+)
+args = parser.parse_args()
 
-# Output directory for merged files
-output_dir = os.path.join(base_dir, "merged")
+base_dir = os.path.abspath(
+    os.environ.get("SONIFICATIONS_DIR", args.base_dir)
+)
+output_dir = os.path.abspath(args.output_dir) if args.output_dir else os.path.join(base_dir, "merged")
+delete_original_files = args.delete_original
+
 os.makedirs(output_dir, exist_ok=True)
 
-# Update the summary dictionary to track skipped batches
+# Summary dictionary to track processed folders and files
 summary = {
     "total_folders": 0,
     "total_files": 0,

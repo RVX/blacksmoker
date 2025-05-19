@@ -177,14 +177,23 @@ class ONCDownloadClass(BaseDownloadClass):
 
     def download_data(self, min_lat, max_lat, min_lon, max_lon, min_depth, max_depth, license, start_time, end_time, save_dir):
         """
+        Download data from ONC, saving to a temp folder and then moving to the final destination.
         """
 
-        outPath = os.path.join(save_dir, 'tmp_'+str_gen())
+        from datetime import datetime
+
+        # First, get deployments (must be before using deployments)
+        deployments = self.filter_deployments(
+            min_lat, max_lat, min_lon, max_lon, min_depth, max_depth, license, start_time, end_time
+        )
+
+        # Now it's safe to use deployments
+        device_code = deployments[0]['filters']['deviceCode'] if deployments else "unknown"
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        outPath = os.path.join(save_dir, f"tmp_{device_code}_{timestamp}")
+
         self.onc = ONC(token=self.token, outPath=outPath)
 
-        # print(len(self.deployments), 'deployments available')
-        deployments = self.filter_deployments(min_lat, max_lat, min_lon, max_lon, min_depth, max_depth, license, start_time, end_time)
-        # print(len(deployments), 'deployments after filtering')
         for deployment in deployments:
             filters = deployment['filters']
             locationCode = deployment['locationCode']
@@ -247,5 +256,9 @@ class ONCDownloadClass(BaseDownloadClass):
             for s in glob.glob(outPath+'/*', recursive=True):
                 if not os.path.exists(fname):
                     shutil.move(s, fname)
+
+        # (Optional) Clean up temp folder after moving files
+        import shutil
+        shutil.rmtree(outPath, ignore_errors=True)
 
 

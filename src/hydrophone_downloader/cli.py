@@ -40,7 +40,7 @@ def main(cfg: DictConfig):
         save_dir=cfg.save_dir,
     )
 
-@hydra.main(config_path=CONFIG_PATH, config_name="token_config")
+@hydra.main(config_path=CONFIG_PATH, config_name="token_config", version_base="1.3")  # <-- added version_base here to solve warning
 def set_token(cfg: DictConfig):
     """
     Command to set the API token and store it in .env file.

@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+
+
 from .base_class import BaseDownloadClass
 
 # import pandas as pd
@@ -92,6 +94,8 @@ class ONCDownloadClass(BaseDownloadClass):
 
 
 
+        seen = set()  # Add this before the for location in locations: loop
+
         for location in locations:
             # get the locatio{'dpo_audioFormatConversion':1,'dpo_hydrophoneDataDiversionMode':'OD'}n code.
             locationCode = location['locationCode']
@@ -132,6 +136,10 @@ class ONCDownloadClass(BaseDownloadClass):
 
                 # for date in pd.date_range(start=begin.date(), end=end.date()+pd.Timedelta('1D'))[::-1]:
                 for date in pl.date_range(start=begin, end=end, interval='1d', eager=True).alias('date').to_frame().to_dict()['date'][::-1]:
+                    key = (locationCode, date)
+                    if key in seen:
+                        continue
+                    seen.add(key)
 
                     # print('latitude', deployment['lat'])
                     # print('longitude', deployment['lon'])
@@ -168,7 +176,18 @@ class ONCDownloadClass(BaseDownloadClass):
                         'extension':extension,
                     }
 
-                    deployments_out.append({'date': date, 'latitude': deployment['lat'], 'longitude': deployment['lon'], 'depth': deployment['depth'], 'license': self.license, 'locationCode':locationCode, 'source': 'ONC', 'fname':fname, 'citation':citation, 'filters':filters})
+                    deployments_out.append({
+                        'date': date,
+                        'latitude': deployment['lat'],
+                        'longitude': deployment['lon'],
+                        'depth': deployment['depth'],
+                        'license': self.license,
+                        'locationCode': locationCode,
+                        'source': 'ONC',
+                        'fname': fname,
+                        'citation': citation,
+                        'filters': filters
+                    })
 
         print('There are', len(deployments_out), 'deployments available from ONC')
         return deployments_out
@@ -187,19 +206,19 @@ class ONCDownloadClass(BaseDownloadClass):
             min_lat, max_lat, min_lon, max_lon, min_depth, max_depth, license, start_time, end_time
         )
 
-        # Now it's safe to use deployments
-        device_code = deployments[0]['filters']['deviceCode'] if deployments else "unknown"
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        outPath = os.path.join(save_dir, f"tmp_{device_code}_{timestamp}")
-
-        self.onc = ONC(token=self.token, outPath=outPath)
-
         for deployment in deployments:
             filters = deployment['filters']
             locationCode = deployment['locationCode']
             date = deployment['date']
             fname = os.path.join(save_dir, deployment['fname'])
             os.makedirs(fname, exist_ok=True)
+
+            # Create a unique temp folder for each deployment
+            device_code = filters['deviceCode']
+            date_str = date.strftime("%Y%m%d")
+            timestamp = datetime.now().strftime("%H%M%S")
+            outPath = os.path.join(save_dir, f"tmp_{device_code}_{locationCode}_{date_str}_{timestamp}")
+            self.onc = ONC(token=self.token, outPath=outPath)
 
             citation = deployment['citation']
             if citation is not None:
@@ -227,15 +246,9 @@ class ONCDownloadClass(BaseDownloadClass):
             else:
                 # optional parameters to loop through and try:
                 filters_orig = {'locationCode': locationCode,'deviceCategoryCode':'HYDROPHONE','dataProductCode':'AD','extension':'flac','dateFrom':date.strftime('%Y-%m-%d'),'dateTo':(date+timedelta(days=1)).strftime('%Y-%m-%d'),'dpo_audioDownsample':-1} #, 'dpo_audioFormatConversion':0}
-                # if filters_orig['locationCode']+filters_orig['dateFrom'] in log:
-                #     continue
-
                 is_done = False
 
-                
-
                 for d in [{'dpo_hydrophoneDataDiversionMode':'OD'}, {'dpo_hydrophoneDataDiversionMode':'OD', 'dpo_hydrophoneChannel':'All'},{'dpo_hydrophoneChannel':'All'},{'dpo_audioFormatConversion':0,'dpo_hydrophoneDataDiversionMode':'OD','dpo_hydrophoneChannel':'All'},{'dpo_audioFormatConversion':0,'dpo_hydrophoneDataDiversionMode':'OD'},{'dpo_audioFormatConversion':1,'dpo_hydrophoneDataDiversionMode':'OD','dpo_hydrophoneChannel':'All'}]:
-                    # for d in [{'dpo_hydrophoneDataDiversionMode':'OD'}, {'dpo_hydrophoneDataDiversionMode':'OD', 'dpo_hydrophoneChannel':'All'},{'dpo_hydrophoneChannel':'All'}]:
                     filters = deepcopy(filters_orig)
                     filters.update(d)
                     try:
@@ -257,8 +270,7 @@ class ONCDownloadClass(BaseDownloadClass):
                 if not os.path.exists(fname):
                     shutil.move(s, fname)
 
-        # (Optional) Clean up temp folder after moving files
-        import shutil
-        shutil.rmtree(outPath, ignore_errors=True)
+            # Clean up temp folder after moving files
+            shutil.rmtree(outPath, ignore_errors=True)
 
 

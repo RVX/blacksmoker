@@ -19,7 +19,7 @@ outputs/
 sonifications/*
 !sonifications/merged/
 sonifications/merged/*
-# (optional) If you want to keep a placeholder in merged/, add a .gitkeep file
+!sonifications/merged/.gitkeep
 
 # VSCode and OS files
 .vscode/

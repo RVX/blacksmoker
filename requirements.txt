@@ -1,0 +1,9 @@
+obspy
+gitpython
+bs4
+hydra-core
+omegaconf
+python-dotenv
+pydub
+tqdm
+colorama

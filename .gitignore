@@ -1,0 +1,23 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*.so
+
+# Distribution / packaging
+*.egg-info/
+dist/
+build/
+
+# Environment files
+.env
+
+# Output and logs
+outputs/
+sonifications/merged/
+sonifications/tmp_*/
+*.log
+
+# VSCode and OS files
+.vscode/
+.DS_Store
+Thumbs.db

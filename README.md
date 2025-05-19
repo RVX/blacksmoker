@@ -1,6 +1,8 @@
 # hydrophone_downloader
 
 A Python package for downloading, converting, and merging hydrophone data from various sources.
+Original code Bret Nestor --> https://github.com/bnestor/hydrophone_downloader
+Mods by RVX in 2025
 
 ## Features
 
@@ -29,10 +31,9 @@ pip install -e .
 Example command:
 
 ```sh
-hydrophone-downloader min_latitude=45 max_latitude=47 min_longitude=-131 max_longitude=-129 min_depth=0 max_depth=4000 start_time="2025-01-01" end_time="2025-01-02" save_dir="./sonifications"
+hydrophone-downloader min_latitude=45 max_latitude=50 min_longitude=-131 max_longitude=-129 min_depth=0 max_depth=4000 start_time="2025-01-01" end_time="2025-01-03" save_dir="./sonifications"
 ```
 
-This will save all downloaded files to the `sonifications` folder in your project directory, making it portable across any machine or operating system.
 
 Run the CLI:
 

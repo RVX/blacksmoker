@@ -13,9 +13,14 @@ build/
 
 # Output and logs
 outputs/
-sonifications/merged/
-sonifications/tmp_*/
 *.log
+
+# Ignore everything in sonifications except merged/
+sonifications/*
+!sonifications/merged/
+# (optional) If you want to ignore files inside merged/ too, add:
+# sonifications/merged/*
+# (optional) If you want to keep a placeholder in merged/, add a .gitkeep file
 
 # VSCode and OS files
 .vscode/
